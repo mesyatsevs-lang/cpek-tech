@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Элемент Контроль — качество, которое можно предъявить</title>
+<meta name="description" content="Непрерывное измерение температуры бетона, сверка режима с технологической картой и протокол исполнения для исполнительной документации.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#EDEEE9;
+    --surface:#FFFFFF;
+    --surface-2:#F5F6F2;
+    --ink:#1B2436;
+    --ink-2:#414D62;
+    --muted:#6E7788;
+    --line:#D8DBD5;
+    --line-soft:#E6E8E2;
+    --heat:#E86020;
+    --steel:#2B3A55;
+    --shadow:0 1px 0 rgba(21,24,26,.03), 0 10px 30px -22px rgba(21,24,26,.5);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#12151A; --surface:#191D24; --surface-2:#1F242C;
+      --ink:#E8EBEF; --ink-2:#B9C0CB; --muted:#8A93A1;
+      --line:#2D333C; --line-soft:#242A32;
+      --heat:#F5934F; --steel:#9DB2CE;
+      --shadow:0 1px 0 rgba(0,0,0,.5), 0 12px 32px -24px #000;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#12151A; --surface:#191D24; --surface-2:#1F242C;
+    --ink:#E8EBEF; --ink-2:#B9C0CB; --muted:#8A93A1;
+    --line:#2D333C; --line-soft:#242A32;
+    --heat:#F5934F; --steel:#9DB2CE;
+    --shadow:0 1px 0 rgba(0,0,0,.5), 0 12px 32px -24px #000;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:"Golos Text","Segoe UI",Arial,sans-serif;
+    font-size:16.5px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px}
+  section{padding:64px 0; border-top:1px solid var(--line)}
+  section:first-of-type{border-top:0}
+
+  h1,h2,h3{margin:0; text-wrap:balance; letter-spacing:-.02em}
+  h1{font-size:clamp(32px,5.2vw,54px); font-weight:700; line-height:1.05}
+  h2{font-size:clamp(24px,3.2vw,32px); font-weight:600; line-height:1.15; margin-bottom:14px}
+  h3{font-size:18px; font-weight:600; letter-spacing:-.005em}
+  p{margin:0 0 14px; max-width:66ch}
+  .lede{font-size:19px; color:var(--ink-2)}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:500;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 12px;
+  }
+
+  /* ── шапка ── */
+  header{
+    position:sticky; top:0; z-index:5; background:var(--ground);
+    border-bottom:1px solid var(--line);
+  }
+  .bar{display:flex; align-items:center; justify-content:space-between; gap:20px; padding:12px 0}
+  .brand{display:flex; align-items:center; gap:11px; text-decoration:none; color:inherit}
+  .brand .mark{height:50px; width:auto; display:block}
+  @media(max-width:520px){.brand .mark{height:38px}}
+  nav{display:flex; gap:22px; font-size:14.5px}
+  nav a{color:var(--ink-2); text-decoration:none}
+  nav a:hover{color:var(--heat)}
+  @media(max-width:720px){nav{display:none}}
+
+  /* ── первый экран: фотография во всю ширину ── */
+  .hero{
+    position:relative; padding:0; border-top:0; overflow:hidden;
+    min-height:clamp(460px,68vh,660px); display:flex; align-items:flex-end;
+    background:#0E1114;
+  }
+  .hero-bg{position:absolute; inset:0}
+  .hero-bg img{width:100%; height:100%; object-fit:cover; display:block; opacity:.62}
+  .hero::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(14,17,20,.35) 0%, rgba(14,17,20,.55) 45%, rgba(14,17,20,.88) 100%);
+  }
+  .hero-inner{position:relative; z-index:1; padding-top:80px; padding-bottom:48px; width:100%}
+  .hero-inner .eyebrow{color:#D9DEE4}
+  .hero h1{
+    color:#fff; max-width:19ch;
+    font-size:clamp(34px,5.6vw,62px); text-shadow:0 2px 24px rgba(0,0,0,.4);
+  }
+  .hero .lede{margin-top:20px; max-width:60ch; color:#DFE4E9; font-size:clamp(17px,1.5vw,21px)}
+  .hero-podpis{
+    margin:26px 0 0; padding-left:13px; border-left:3px solid var(--heat);
+    color:#C9D0D8; font-size:14.5px; max-width:46ch;
+  }
+
+  /* ── график режима ── */
+  .grafik{background:var(--surface-2)}
+  .chart{
+    margin-top:20px; background:var(--surface); border:1px solid var(--line);
+    border-radius:5px; padding:28px 26px 18px; box-shadow:var(--shadow); overflow-x:auto;
+  }
+  .chart svg{display:block; min-width:640px; width:100%; height:auto}
+  .chart figcaption{margin-top:14px; font-size:15px; color:var(--ink-2); max-width:78ch}
+
+  /* ── фотографии с площадки ── */
+  .foto-krupno{display:grid; grid-template-columns:1.25fr 1fr; gap:16px; margin-top:26px}
+  .foto-krupno figure{margin:0}
+  .foto-krupno .glavnoe img{height:520px}
+  .foto-krupno .para{display:grid; gap:16px; align-content:start}
+  .foto-krupno .para img{height:252px}
+  .foto-krupno img{
+    display:block; width:100%; object-fit:cover;
+    border-radius:5px; border:1px solid var(--line);
+  }
+  .foto-krupno figcaption{margin-top:10px; font-size:14.5px; color:var(--muted); line-height:1.45}
+  @media(max-width:820px){
+    .foto-krupno{grid-template-columns:1fr}
+    .foto-krupno .glavnoe img{height:340px}
+    .foto-krupno .para{grid-template-columns:1fr 1fr}
+    .foto-krupno .para img{height:210px}
+  }
+
+  /* ── карточки ── */
+  .grid{display:grid; gap:14px}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(275px,1fr))}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:4px;
+    padding:20px; display:flex; flex-direction:column; gap:8px;
+  }
+  .card .num{
+    font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--heat);
+    letter-spacing:.08em;
+  }
+  .card p{margin:0; font-size:15px; color:var(--ink-2)}
+
+  /* ── было / стало ── */
+  .vs{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:0;
+      border:1px solid var(--line); border-radius:4px; overflow:hidden}
+  .vs > div{padding:26px 24px; background:var(--surface)}
+  .vs > div + div{border-left:1px solid var(--line); background:var(--surface-2)}
+  @media(max-width:700px){.vs > div + div{border-left:0; border-top:1px solid var(--line)}}
+  .vs h3{margin-bottom:10px}
+  .vs ul{margin:0; padding-left:18px; color:var(--ink-2); font-size:15px}
+  .vs li{margin-bottom:7px}
+
+  /* ── цепочка ── */
+  .chain{display:flex; flex-wrap:wrap; gap:10px; align-items:stretch; margin-top:8px}
+  .link-box{
+    flex:1 1 165px; background:var(--surface); border:1px solid var(--line);
+    border-radius:4px; padding:16px 14px;
+  }
+  .link-box b{display:block; font-size:15px; margin-bottom:4px}
+  .link-box small{color:var(--muted); font-size:13px; line-height:1.45; display:block}
+
+  /* ── цифры ── */
+  #effekt{background:#151A20; border-top:0}
+  #effekt .eyebrow{color:#8A93A1}
+  #effekt h2{color:#F2F4F6}
+  #effekt > .wrap > p:last-child{color:#98A1AC}
+  .figs{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1px;
+        background:#2A313A; border:1px solid #2A313A; border-radius:5px; overflow:hidden}
+  .fig{background:#1A2028; padding:26px 22px}
+  .fig .v{
+    font-family:"IBM Plex Mono",monospace; font-size:clamp(26px,2.4vw,34px); font-weight:500;
+    color:#F5934F; letter-spacing:-.03em; font-variant-numeric:tabular-nums; line-height:1.1;
+  }
+  .fig .k{font-size:15px; color:#C6CDD5; margin-top:12px}
+  .fig .src{font-size:12.5px; color:#7C858F; margin-top:12px}
+
+  /* ── лаборатория ── */
+  .tests{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
+  .tests span{
+    border:1px solid var(--line); background:var(--surface); border-radius:3px;
+    padding:7px 12px; font-size:14.5px; color:var(--ink-2);
+  }
+
+  /* ── объекты ── */
+  .objs{border-top:1px solid var(--line-soft)}
+  .obj{
+    display:grid; grid-template-columns:200px 1fr; gap:20px;
+    padding:16px 0; border-bottom:1px solid var(--line-soft);
+  }
+  .obj b{font-size:15.5px}
+  .obj p{margin:0; font-size:15px; color:var(--ink-2)}
+  @media(max-width:640px){.obj{grid-template-columns:1fr; gap:4px}}
+
+  /* ── подвал ── */
+  footer{border-top:1px solid var(--line); padding:52px 0 64px; color:var(--muted); font-size:14.5px; background:var(--surface-2)}
+  footer a{color:var(--steel)}
+  .person{margin-bottom:26px; padding-bottom:22px; border-bottom:1px solid var(--line-soft)}
+  .person b{display:block; color:var(--ink); font-size:21px; font-weight:700; letter-spacing:-.02em}
+  .person span{display:block; color:var(--ink-2); font-size:15.5px; margin-top:2px}
+  .person em{
+    display:block; font-style:normal; margin-top:10px; max-width:56ch;
+    font-size:14px; color:var(--muted); padding-left:12px;
+    border-left:2px solid var(--heat);
+  }
+  .komanda{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:30px;
+    margin-bottom:30px; padding-bottom:28px; border-bottom:1px solid var(--line);
+  }
+  .chelovek{display:flex; gap:18px; align-items:flex-start}
+  .portret{
+    width:88px; height:88px; flex:none; border-radius:50%; object-fit:cover;
+    border:1px solid var(--line); display:block;
+  }
+  .portret-net{
+    display:flex; align-items:center; justify-content:center;
+    background:var(--surface); color:var(--muted);
+    font-size:26px; font-weight:600; letter-spacing:.02em;
+  }
+  .chelovek b{display:block; color:var(--ink); font-size:20px; font-weight:700; letter-spacing:-.02em}
+  .chelovek span{display:block; color:var(--ink-2); font-size:15.5px; margin-top:2px}
+  .chelovek em{
+    display:block; font-style:normal; margin-top:9px; font-size:14px; color:var(--muted);
+    padding-left:11px; border-left:2px solid var(--heat); max-width:46ch;
+  }
+  .chelovek a{display:inline-block; margin-top:10px; font-size:15px; color:var(--steel); text-decoration:none}
+  .chelovek a:hover{color:var(--heat)}
+  .contacts{display:flex; flex-wrap:wrap; gap:36px; margin-bottom:24px; font-size:17px; color:var(--ink)}
+  .contacts div b{display:block; color:var(--muted); font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; margin-bottom:3px}
+  .contacts a{color:var(--steel); text-decoration:none}
+  .contacts a:hover{color:var(--heat)}
+  .slogan{
+    font-size:21px; font-weight:600; color:var(--ink); letter-spacing:-.02em;
+    margin:0 0 10px; padding-top:20px; border-top:1px solid var(--line-soft);
+  }
+  a:focus-visible{outline:2px solid var(--heat); outline-offset:3px}
+</style>
+</head>
+<body>
+
+<header id="top">
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="Элемент Контроль — цифровая платформа">
+      <img class="mark" src="logotip/logotip.png" width="708" height="175"
+           alt="Элемент Контроль — цифровая платформа">
+    </a>
+    <nav>
+      <a href="#norma">Норматив</a>
+      <a href="#sistema">Система</a>
+      <a href="#effekt">Эффект</a>
+      <a href="zakazchiki.html">Объекты</a>
+      <a href="#kontakty">Контакты</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="hero-bg">
+    <img src="foto/zima-armatura.jpg" alt="" aria-hidden="true">
+  </div>
+  <div class="wrap hero-inner">
+    <p class="eyebrow">Зимнее бетонирование · электропрогрев</p>
+    <h1>Режим прогрева,<br>который можно предъявить</h1>
+    <p class="lede">Непрерывное измерение температуры в конструкции, сверка фактического режима с технологической картой и готовый протокол за смену — вместо журнала, заполненного со слов в конце недели.</p>
+    <p class="hero-podpis">Отрицательные температуры — рабочий режим системы, а не исключение</p>
+  </div>
+</section>
+
+<section class="grafik">
+  <div class="wrap">
+    <p class="eyebrow">Что должно происходить с температурой</p>
+    <figure class="chart">
+      <svg viewBox="0 0 720 250" role="img" aria-label="График режима электропрогрева: подъём температуры с ограничением скорости, полка изотермического прогрева ниже предельной температуры, остывание с ограничением скорости">
+        <g class="mono" font-family="IBM Plex Mono, monospace" font-size="11">
+          <line x1="56" y1="212" x2="700" y2="212" stroke="var(--line)"/>
+          <line x1="56" y1="24" x2="56" y2="212" stroke="var(--line)"/>
+
+          <line x1="56" y1="52" x2="700" y2="52" stroke="var(--heat)" stroke-width="1" stroke-dasharray="4 4" opacity=".55"/>
+          <text x="700" y="46" text-anchor="end" fill="var(--heat)" font-size="10.5">предел изотермии</text>
+
+          <path d="M56 196 L100 190 L250 74 L470 74 L640 186 L700 190"
+                fill="none" stroke="var(--steel)" stroke-width="2.5"
+                stroke-linejoin="round" stroke-linecap="round"/>
+
+          <g stroke="var(--line)" stroke-dasharray="3 3">
+            <line x1="250" y1="74" x2="250" y2="212"/>
+            <line x1="470" y1="74" x2="470" y2="212"/>
+          </g>
+
+          <text x="150" y="230" text-anchor="middle" fill="var(--muted)">подъём</text>
+          <text x="360" y="230" text-anchor="middle" fill="var(--muted)">изотермия</text>
+          <text x="560" y="230" text-anchor="middle" fill="var(--muted)">остывание</text>
+
+          <text x="150" y="120" text-anchor="middle" fill="var(--ink-2)" font-size="10.5">скорость ограничена</text>
+          <text x="560" y="128" text-anchor="middle" fill="var(--ink-2)" font-size="10.5">скорость ограничена</text>
+
+          <circle cx="250" cy="74" r="3.5" fill="var(--heat)"/>
+          <circle cx="470" cy="74" r="3.5" fill="var(--heat)"/>
+        </g>
+      </svg>
+      <figcaption>Четыре участка режима, каждый со своим ограничением по СП 435. Нарушение любого из них — это трещины в поверхностных слоях либо недобор прочности, и то и другое обнаруживается уже после снятия опалубки.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="norma">
+  <div class="wrap">
+    <p class="eyebrow">Что требует свод правил</p>
+    <h2>Норматив уже написан. Вопрос в том, чем доказать его исполнение</h2>
+    <p class="lede">СП 435.1325800.2018 задаёт режим прогрева параметрами, а не пожеланиями. Система измеряет каждый из них непрерывно и сохраняет ряд.</p>
+
+    <div class="grid g4" style="margin-top:26px">
+      <div class="card">
+        <span class="num">п. 10.7</span>
+        <h3>Скорость подъёма</h3>
+        <p>Ограничена и зависит от модуля поверхности конструкции.</p>
+      </div>
+      <div class="card">
+        <span class="num">п. 10.8</span>
+        <h3>Форсированный разогрев</h3>
+        <p>Ограничен по продолжительности.</p>
+      </div>
+      <div class="card">
+        <span class="num">п. 10.9</span>
+        <h3>Температура изотермии</h3>
+        <p>Ограничена сверху, отдельно — для наружных слоёв.</p>
+      </div>
+      <div class="card">
+        <span class="num">п. 10.11</span>
+        <h3>Скорость остывания</h3>
+        <p>Ограничена; для массивных конструкций считается против трещин.</p>
+      </div>
+    </div>
+
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card">
+        <span class="num">п. 10.23.5</span>
+        <h3>Замеры и журнал</h3>
+        <p>Не реже одного раза в два часа, с ведением журнала сдачи и приёмки смены. Система ведёт его сама и отдаёт готовым.</p>
+      </div>
+      <div class="card">
+        <span class="num">плотность точек</span>
+        <h3>Сколько точек ставить</h3>
+        <p>Не менее одной на 3 м³ бетона, 6 м длины конструкции, 50 м² перекрытия, 40 м² полов. Расстановка репрезентативна и определяется сценарием контроля.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Разница</p>
+    <h2>Как это происходит сейчас</h2>
+    <div class="vs" style="margin-top:24px">
+      <div>
+        <h3>Без системы</h3>
+        <ul>
+          <li>Режим держат вручную, поворотом ручек трансформатора.</li>
+          <li>Замеры делает человек, ночью — реже всего, а именно ночью происходит значительная часть отклонений.</li>
+          <li>Журнал заполняется задним числом со слов.</li>
+          <li>Аварийное отключение питания замечают утром.</li>
+          <li>Доказательством соблюдения режима служит подпись, а не данные.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>С системой</h3>
+        <ul>
+          <li>Температура в конструкции измеряется непрерывно и сохраняется.</li>
+          <li>Фактический режим сверяется с уставками технологической карты.</li>
+          <li>Отклонение и обрыв питания видны сразу — оповещение в чат-бот, на почту или SMS.</li>
+          <li>Протокол за смену и за заливку формируется автоматически.</li>
+          <li>Есть прогноз: достижимы ли требуемые показатели при текущем режиме.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sistema">
+  <div class="wrap">
+    <p class="eyebrow">Как устроено</p>
+    <h2>Система «Элемент Контроль»</h2>
+    <p class="lede">Пять звеньев: два в конструкции и на площадке, три — в цифровом контуре.</p>
+
+    <div class="chain">
+      <div class="link-box"><b>Точка измерения</b><small>цифровой датчик температуры в теле конструкции; тип внесён в Государственный реестр средств измерений</small></div>
+      <div class="link-box"><b>Головное устройство</b><small>опрос точек и локальное накопление данных</small></div>
+      <div class="link-box"><b>Базовая станция</b><small>передача данных по защищённому каналу связи</small></div>
+      <div class="link-box"><b>Цифровая платформа</b><small>приём, хранение, расчёт зрелости бетона, сверка с технологической картой</small></div>
+      <div class="link-box"><b>Интерфейсы</b><small>веб-кабинет из любого браузера, чат-бот, выгрузка отчёта</small></div>
+    </div>
+
+    <div class="grid g3" style="margin-top:26px">
+      <div class="card">
+        <h3>Прогноз прочности</h3>
+        <p>Расчёт по методике зрелости бетона — модели Nurse-Saul и Arrhenius — с учётом состава применяемой смеси.</p>
+      </div>
+      <div class="card">
+        <h3>Работа без остановки</h3>
+        <p>Режим 24/7, масштаб — более тысячи одновременных точек контроля.</p>
+      </div>
+      <div class="card">
+        <h3>Управление прогревом</h3>
+        <p>Алгоритм автоматической корректировки режима через тиристорный регулятор трансформатора опубликован в рецензируемом журнале и апробирован на объектах. Поставляется по отдельному соглашению.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ploshchadka">
+  <div class="wrap">
+    <p class="eyebrow">На площадке</p>
+    <h2>Как это выглядит в работе</h2>
+    <div class="foto-krupno">
+      <figure class="glavnoe">
+        <img src="foto/ustroystvo.jpg" width="1400" height="1867" alt="Головное устройство системы на объекте" loading="lazy">
+        <figcaption>Головное устройство опрашивает точки измерения и держит связь с площадкой.</figcaption>
+      </figure>
+      <div class="para">
+        <figure>
+          <img src="foto/montazh-na-obekte.jpg" width="1400" height="1867" alt="Инженер подключает головные устройства к точкам измерения" loading="lazy">
+          <figcaption>Точки ставятся до заливки, по схеме расстановки.</figcaption>
+        </figure>
+        <figure>
+          <img src="foto/qr-na-stoyke.jpg" width="1400" height="1867" alt="Головное устройство с QR-кодом на стойке опалубки" loading="lazy">
+          <figcaption>У каждого устройства свой код — привязка к заливке и конструкции.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="effekt">
+  <div class="wrap">
+    <p class="eyebrow">Порядок величин</p>
+    <h2>На чём считается эффект</h2>
+    <div class="figs" style="margin-top:24px">
+      <div class="fig">
+        <div class="v">500–2000 ₽/м³</div>
+        <div class="k">на столько дорожают монолитные работы при отрицательных температурах</div>
+        <div class="src">по итогам пилотных проектов</div>
+      </div>
+      <div class="fig">
+        <div class="v">от 20 %</div>
+        <div class="k">оценка экономии энергозатрат при переводе прогрева на дистанционное управление</div>
+        <div class="src">расчётная оценка</div>
+      </div>
+      <div class="fig">
+        <div class="v">от 12 000 ₽/м³</div>
+        <div class="k">демонтаж и повторное возведение конструкции</div>
+        <div class="src">оценка стоимости последствий</div>
+      </div>
+      <div class="fig">
+        <div class="v">от 100 000 ₽/сут</div>
+        <div class="k">выработка бригады монолитчиков, теряемая при простое</div>
+        <div class="src">оценка стоимости последствий</div>
+      </div>
+    </div>
+    <p style="margin-top:20px; font-size:15px; color:var(--muted)">Система измеряет, сравнивает с заданным режимом и документирует результат. Величина эффекта на конкретном объекте зависит от условий производства работ и определяется совместно с заказчиком.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Где применялось</p>
+    <h2>Объекты</h2>
+    <div class="objs" style="margin-top:20px">
+      <div class="obj">
+        <b>ПАО «ПУТЕВИ» Ужице</b>
+        <p>Аквапарк и завод в Завидово, массивные фундаменты. Практическое внедрение разработанных решений.</p>
+      </div>
+      <div class="obj">
+        <b>Сэтл Групп</b>
+        <p>Мониторинг твердения на серии заливок, две марки бетона.</p>
+      </div>
+      <div class="obj">
+        <b>Сезар Групп</b>
+        <p>Жилой комплекс, поточное бетонирование корпусов, типовой этаж и массивная фундаментная плита.</p>
+      </div>
+    </div>
+    <p style="margin-top:18px; font-size:14.5px; color:var(--muted)">Перечень внедрений опубликован в статье «Алгоритм управления электропрогревом бетона для решения задачи цифрового контроля качества монолитных работ», журнал «Строительство и архитектура», 2024.</p>
+  </div>
+</section>
+
+</main>
+
+<footer id="kontakty">
+  <div class="wrap">
+    <div class="komanda">
+      <div class="chelovek">
+        <img class="portret" src="foto/sergey-mesyatsev.jpg" width="640" height="640" alt="Сергей Месяцев" loading="lazy">
+        <div>
+          <b>Сергей Месяцев</b>
+          <span>Управляющий партнёр</span>
+          <em>Партнёр по стратегическому развитию девелоперских и строительных компаний. Эксперт Комиссии по цифровизации строительной отрасли и ЖКХ, Общественный совет при Минстрое России</em>
+          <a href="mailto:mesyatsev.s@cpek.tech">mesyatsev.s@cpek.tech</a>
+        </div>
+      </div>
+      <div class="chelovek">
+        <img class="portret" src="foto/lev-averbukh.jpg" width="640" height="640" alt="Лев Авербух" loading="lazy">
+        <div>
+          <b>Лев Авербух</b>
+          <span>Генеральный директор ООО «ЦПЭК»</span>
+          <em>Свыше 15 лет в научно-исследовательской и проектной деятельности, опыт внедрения инновационных технических решений</em>
+          <a href="mailto:averbukh.l@cpek.tech">averbukh.l@cpek.tech</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="contacts">
+      <div><b>Телефон</b><a href="tel:+79035103511">+7 903 510-35-11</a></div>
+      <div><b>Почта</b><a href="mailto:info@cpek.tech">info@cpek.tech</a></div>
+      <div><b>Сайт</b>www.cpek.tech</div>
+      <div><b>Адрес</b>121205, Москва, ИЦ «Сколково», Большой бульвар, д. 42, стр. 1</div>
+    </div>
+    <p class="slogan">Качество, которое можно предъявить</p>
+    <p style="margin:0">ООО «ЦПЭК» — участник проекта «Сколково».</p>
+  </div>
+</footer>
+
+</body>
+</html>

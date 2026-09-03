@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Элемент Контроль — объекты и заказчики</title>
+<meta name="description" content="Объекты, на которых работала система «Элемент Контроль»: заказчики, стадии, что было сделано.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#EDEEE9; --surface:#FFFFFF; --surface-2:#F5F6F2;
+    --ink:#1B2436; --ink-2:#414D62; --muted:#6E7788;
+    --line:#D8DBD5; --line-soft:#E6E8E2;
+    --heat:#E86020; --steel:#2B3A55;
+    --shadow:0 1px 0 rgba(21,24,26,.03), 0 10px 30px -22px rgba(21,24,26,.5);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#12151A; --surface:#191D24; --surface-2:#1F242C;
+      --ink:#E8EBEF; --ink-2:#B9C0CB; --muted:#8A93A1;
+      --line:#2D333C; --line-soft:#242A32;
+      --heat:#F5934F; --steel:#9DB2CE;
+      --shadow:0 1px 0 rgba(0,0,0,.5), 0 12px 32px -24px #000;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#12151A; --surface:#191D24; --surface-2:#1F242C;
+    --ink:#E8EBEF; --ink-2:#B9C0CB; --muted:#8A93A1;
+    --line:#2D333C; --line-soft:#242A32;
+    --heat:#F5934F; --steel:#9DB2CE;
+    --shadow:0 1px 0 rgba(0,0,0,.5), 0 12px 32px -24px #000;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:"Golos Text","Segoe UI",Arial,sans-serif; font-size:16.5px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px}
+  header{background:var(--ground); border-bottom:1px solid var(--line)}
+  .bar{display:flex; align-items:center; justify-content:space-between; gap:20px; padding:12px 0}
+  .brand img{height:50px; width:auto; display:block}
+  nav a{color:var(--ink-2); text-decoration:none; font-size:14.5px; margin-left:22px}
+  nav a:hover{color:var(--heat)}
+
+  section{padding:56px 0; border-top:1px solid var(--line)}
+  section:first-of-type{border-top:0}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:500;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 12px;
+  }
+  h1{font-size:clamp(30px,4.4vw,46px); font-weight:700; letter-spacing:-.02em; line-height:1.06; margin:0; text-wrap:balance}
+  h2{font-size:clamp(22px,2.6vw,28px); font-weight:600; letter-spacing:-.02em; margin:0 0 20px}
+  p{margin:0 0 14px; max-width:68ch}
+  .lede{font-size:19px; color:var(--ink-2); margin-top:16px}
+
+  .setka{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px}
+  .obekt{
+    background:var(--surface); border:1px solid var(--line); border-radius:5px;
+    padding:22px; display:flex; flex-direction:column; gap:10px; box-shadow:var(--shadow);
+  }
+  .shapka{display:flex; align-items:center; gap:14px}
+  .znak{
+    width:52px; height:52px; flex:none; border-radius:5px;
+    background:var(--surface-2); border:1px dashed var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:500; color:var(--muted);
+  }
+  .obekt h3{margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em}
+  .obekt .stadiya{
+    font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.08em;
+    text-transform:uppercase; margin-top:3px; display:block;
+  }
+  .s-rabotaet{color:#2C6B4F}
+  .s-vypolneno{color:var(--steel)}
+  .s-dogovor{color:var(--heat)}
+  .s-ranyaya{color:var(--muted)}
+  .obekt p{margin:0; font-size:15px; color:var(--ink-2)}
+  .obekt dl{margin:0; display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:14px}
+  .obekt dt{color:var(--muted)}
+  .obekt dd{margin:0; color:var(--ink-2)}
+
+  .spisok{display:flex; flex-wrap:wrap; gap:10px; margin-top:6px}
+  .spisok span{
+    border:1px solid var(--line); background:var(--surface); border-radius:3px;
+    padding:8px 14px; font-size:15px; color:var(--ink-2);
+  }
+  .zametka{
+    border-left:3px solid var(--heat); background:var(--surface-2);
+    padding:16px 18px; border-radius:0 4px 4px 0; margin-top:26px;
+  }
+  .zametka p{margin:0; font-size:15px; color:var(--ink-2)}
+  .zametka b{color:var(--ink); font-weight:600}
+  footer{border-top:1px solid var(--line); background:var(--surface-2); padding:40px 0 56px; color:var(--muted); font-size:14.5px}
+  a{color:var(--steel)}
+  a:focus-visible{outline:2px solid var(--heat); outline-offset:3px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="index.html"><img src="logotip/logotip.png" alt="Элемент Контроль"></a>
+    <nav>
+      <a href="index.html">Система</a>
+      <a href="index.html#effekt">Эффект</a>
+      <a href="zakazchiki.html">Объекты</a>
+      <a href="index.html#kontakty">Контакты</a>
+    </nav>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Кто работал с системой</p>
+    <h1>Объекты и заказчики</h1>
+    <p class="lede">Восемь заказчиков, у каждого своя контрактация и своя стадия. Ниже — те, с кем были договорные отношения или выполненные работы.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Договоры и выполненные работы</h2>
+    <div class="setka">
+
+      <div class="obekt">
+        <div class="shapka">
+          <div class="znak">ВС</div>
+          <div><h3>Велесстрой</h3><span class="stadiya s-rabotaet">Идёт</span></div>
+        </div>
+        <p>БЦ «Багратион», Москва. Массивная фундаментная плита толщиной 3,8 м — контроль экзотермии и перепада температур между ядром и поверхностью.</p>
+        <dl><dt>Что делаем</dt><dd>регламент бетонирования и ухода, непрерывный контроль плиты</dd></dl>
+      </div>
+
+      <div class="obekt">
+        <div class="shapka">
+          <div class="znak">СГ</div>
+          <div><h3>Сезар Групп</h3><span class="stadiya s-rabotaet">Работающий объект</span></div>
+        </div>
+        <p>ВГК-1, 2-й Хорошевский проезд. Поточное бетонирование корпусов: пилот на типовом этаже, затем корпуса 1.3 и 1.4.</p>
+        <dl><dt>Масштаб</dt><dd>502 головных устройства, 1 054 точки измерения</dd>
+            <dt>Период</dt><dd>с апреля 2025</dd></dl>
+      </div>
+
+      <div class="obekt">
+        <div class="shapka">
+          <div class="znak">СМ</div>
+          <div><h3>Строймонолитмонтаж</h3><span class="stadiya s-dogovor">Договор в работе</span></div>
+        </div>
+        <p>Рамочный договор с двумя дополнительными соглашениями, журнал бетонных работ, доступ заказчика к личному кабинету по договору.</p>
+        <dl><dt>Период</dt><dd>договор с марта 2025</dd></dl>
+      </div>
+
+      <div class="obekt">
+        <div class="shapka">
+          <div class="znak">ТД</div>
+          <div><h3>СК Термодом</h3><span class="stadiya s-vypolneno">Работы выполнены</span></div>
+        </div>
+        <p>Паркинг «Рахманинова», контроль твердения колонн. Работы закрыты актами, есть ведомость расстановки датчиков.</p>
+        <dl><dt>Период</dt><dd>ноябрь — декабрь 2023</dd></dl>
+      </div>
+
+      <div class="obekt">
+        <div class="shapka">
+          <div class="znak">ПУ</div>
+          <div><h3>ПАО «ПУТЕВИ» Ужице</h3><span class="stadiya s-vypolneno">Работы выполнены</span></div>
+        </div>
+        <p>Аквапарк и завод в Завидово, массивные фундаменты. Практическое внедрение алгоритма управления электропрогревом.</p>
+        <dl><dt>Период</dt><dd>2023 — 2025</dd></dl>
+      </div>
+
+      <div class="obekt">
+        <div class="shapka">
+          <div class="znak">СС</div>
+          <div><h3>Сетл Строй</h3><span class="stadiya s-vypolneno">Пилот отработан</span></div>
+        </div>
+        <p>ЖК «Дворцовый фасад», Санкт-Петербург, посёлок Стрельна. Серия заливок с двумя марками бетона, промежуточные отчёты заказчику.</p>
+        <dl><dt>Период</dt><dd>2024</dd></dl>
+      </div>
+
+      <div class="obekt">
+        <div class="shapka">
+          <div class="znak">КТБ</div>
+          <div><h3>КТБ НИИЖБ</h3><span class="stadiya s-dogovor">Договор и переписка</span></div>
+        </div>
+        <p>Договор с КТБ Инжиниринг. Профильный институт по железобетону — отношения научно-технические, а не только коммерческие.</p>
+      </div>
+
+      <div class="obekt">
+        <div class="shapka">
+          <div class="znak">ТР</div>
+          <div><h3>ТК Регион</h3><span class="stadiya s-ranyaya">Ранняя стадия</span></div>
+        </div>
+        <p>Обсуждение коммерциализации, до контрактации не дошло.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Компании, с которыми велись переговоры</h2>
+    <p>Предложения, технические советы и презентации без договорной стадии.</p>
+    <div class="spisok">
+      <span>ЛСР</span>
+      <span>ГК «Легенда»</span>
+      <span>ФСК</span>
+      <span>ЗАК Девелопмент</span>
+      <span>Росатом Недра</span>
+      <span>Азраил</span>
+    </div>
+
+    <div class="zametka">
+      <p><b>Логотипы заказчиков на странице пока не размещены.</b> Публикация чужого товарного знака на своём сайте без письменного согласия правообладателя — риск, а не мелочь: у крупных застройщиков это регулируется отдельным пунктом договора. Пока стоят инициалы; логотипы ставим по каждому заказчику отдельно, получив разрешение.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p style="margin:0">ООО «ЦПЭК» — участник проекта «Сколково». <a href="index.html">На главную</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
